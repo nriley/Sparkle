@@ -121,7 +121,7 @@
 		{
 			// Separate the url by underscores and take the last component, as that'll be closest to the end,
 			// then we remove the extension. Hopefully, this will be the version.
-			NSArray *fileComponents = [[enclosure objectForKey:@"url"] componentsSeparatedByString:@"_"];
+			NSArray *fileComponents = [[enclosure objectForKey:@"url"] componentsSeparatedByString:@"-"];
 			if ([fileComponents count] > 1)
 				newVersion = [[fileComponents lastObject] stringByDeletingPathExtension];
 		}
