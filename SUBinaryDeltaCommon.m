@@ -127,7 +127,7 @@ NSString *hashOfTree(NSString *path)
 
         unsigned char fileHash[CC_SHA1_DIGEST_LENGTH];
         _hashOfFile(fileHash, ent);
-        CC_SHA1_Update(&hashContext, fileHash, sizeof(fileHash));
+        CC_SHA1_Update(&hashContext, fileHash, (CC_LONG)sizeof(fileHash));
 
         NSString *relativePath = pathRelativeToDirectory(path, [NSString stringWithUTF8String:ent->fts_path]);
         NSData *relativePathBytes = [relativePath dataUsingEncoding:NSUTF8StringEncoding];
