@@ -34,7 +34,7 @@
 #pragma mark Initialization
 
 static NSMutableDictionary *sharedUpdaters = nil;
-static NSString *SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObservationContext";
+static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObservationContext";
 
 + (SUUpdater *)sharedUpdater
 {
@@ -47,7 +47,7 @@ static NSString *SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObserv
     if (bundle == nil) bundle = [NSBundle mainBundle];
 	id updater = [sharedUpdaters objectForKey:[NSValue valueWithNonretainedObject:bundle]];
 	if (updater == nil)
-		updater = [[[self class] alloc] initForBundle:bundle];
+		updater = [[[[self class] alloc] initForBundle:bundle] autorelease];
 	return updater;
 }
 
@@ -56,6 +56,11 @@ static NSString *SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObserv
 {
 	self = [super init];
     if (bundle == nil) bundle = [NSBundle mainBundle];
+	
+	// Register as observer straight away to avoid exceptions on -dealloc when -unregisterAsObserver is called:
+	if (self)
+		[self registerAsObserver];
+	
 	id updater = [sharedUpdaters objectForKey:[NSValue valueWithNonretainedObject:bundle]];
     if (updater)
 	{
@@ -68,7 +73,11 @@ static NSString *SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObserv
             sharedUpdaters = [[NSMutableDictionary alloc] init];
         [sharedUpdaters setObject:self forKey:[NSValue valueWithNonretainedObject:bundle]];
         host = [[SUHost alloc] initWithBundle:bundle];
-        [self registerAsObserver];
+		
+		// Saving-the-developer-from-a-stupid-mistake-check:
+		if (![[[self feedURL] scheme] isEqualToString:@"https"] && ![host publicDSAKey])
+			NSRunAlertPanel(@"Insecure update error!", @"For security reasons, you need to distribute your appcast over SSL or sign your updates. See Sparkle's documentation for more information.", @"OK", nil, nil);
+		
         // This runs the permission prompt if needed, but never before the app has finished launching because the runloop won't run before that
         [self performSelector:@selector(startUpdateCycle) withObject:nil afterDelay:0];
 	}
@@ -113,8 +122,9 @@ static NSString *SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObserv
     if (shouldPrompt)
     {
 		NSArray *profileInfo = [host systemProfile];
-		if ([delegate respondsToSelector:@selector(feedParametersForUpdater:sendingSystemProfile:)])
-			profileInfo = [profileInfo arrayByAddingObjectsFromArray:[delegate feedParametersForUpdater:self sendingSystemProfile:[self sendsSystemProfile]]];		
+		// Always say we're sending the system profile here so that the delegate displays the parameters it would send.
+		if ([delegate respondsToSelector:@selector(feedParametersForUpdater:sendingSystemProfile:)]) 
+			profileInfo = [profileInfo arrayByAddingObjectsFromArray:[delegate feedParametersForUpdater:self sendingSystemProfile:YES]];
         [SUUpdatePermissionPrompt promptWithHost:host systemProfile:profileInfo delegate:self];
         // We start the update checks and register as observer for changes after the prompt finishes
 	}
@@ -173,6 +183,8 @@ static NSString *SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObserv
 
 - (void)checkForUpdatesInBackground
 {
+	checkTimer = nil; // Timer doesn't repeat, so it's invalid, just needs to be set to nil.
+	
 	[self checkForUpdatesWithDriver:[[[([self automaticallyDownloadsUpdates] ? [SUAutomaticUpdateDriver class] : [SUScheduledUpdateDriver class]) alloc] initWithUpdater:self] autorelease]];
 }
 
@@ -202,22 +214,22 @@ static NSString *SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObserv
 - (void)registerAsObserver
 {
 	[[NSNotificationCenter defaultCenter] addObserver:self selector:@selector(updateDriverDidFinish:) name:SUUpdateDriverFinishedNotification object:nil];
-    // No sense observing the shared NSUserDefaultsController when we're not updating the main bundle.
-    if ([host bundle] != [NSBundle mainBundle]) return;
     [[NSUserDefaultsController sharedUserDefaultsController] addObserver:self forKeyPath:[@"values." stringByAppendingString:SUScheduledCheckIntervalKey] options:0 context:SUUpdaterDefaultsObservationContext];
     [[NSUserDefaultsController sharedUserDefaultsController] addObserver:self forKeyPath:[@"values." stringByAppendingString:SUEnableAutomaticChecksKey] options:0 context:SUUpdaterDefaultsObservationContext];
 }
 
 - (void)unregisterAsObserver
 {
-	[[NSNotificationCenter defaultCenter] removeObserver:self];
-    // Removing self as a KVO observer if no observer was registered leads to an NSException. But we don't care.
 	@try
 	{
+		[[NSNotificationCenter defaultCenter] removeObserver:self];
 		[[NSUserDefaultsController sharedUserDefaultsController] removeObserver:self forKeyPath:[@"values." stringByAppendingString:SUScheduledCheckIntervalKey]];
 		[[NSUserDefaultsController sharedUserDefaultsController] removeObserver:self forKeyPath:[@"values." stringByAppendingString:SUEnableAutomaticChecksKey]];
 	}
-	@catch (NSException *e) { }
+	@catch (NSException *e)
+	{
+		NSLog(@"Sparkle Error: [SUUpdater unregisterAsObserver] called, but the updater wasn't registered as an observer.");
+	}
 }
 
 - (void)observeValueForKeyPath:(NSString *)keyPath ofObject:(id)object change:(NSDictionary *)change context:(void *)context
@@ -286,9 +298,29 @@ static NSString *SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObserv
 	// A value in the user defaults overrides one in the Info.plist (so preferences panels can be created wherein users choose between beta / release feeds).
 	NSString *appcastString = [host objectForKey:SUFeedURLKey];
 	if (!appcastString) // Can't find an appcast string!
-		[NSException raise:@"SUNoFeedURL" format:@"You must specify the URL of the appcast as the SUFeedURLKey in either the Info.plist or the user defaults!"];
+		[NSException raise:@"SUNoFeedURL" format:@"You must specify the URL of the appcast as the SUFeedURL key in either the Info.plist or the user defaults!"];
 	NSCharacterSet* quoteSet = [NSCharacterSet characterSetWithCharactersInString: @"\"\'"]; // Some feed publishers add quotes; strip 'em.
 	return [NSURL URLWithString:[appcastString stringByTrimmingCharactersInSet:quoteSet]];
+}
+
+- (void)setUserAgentString:(NSString *)userAgent
+{
+	if (customUserAgentString == userAgent)
+		return;
+
+	[customUserAgentString release];
+	customUserAgentString = [userAgent copy];
+}
+
+- (NSString *)userAgentString
+{
+	if (customUserAgentString)
+		return customUserAgentString;
+
+	NSString *version = [SPARKLE_BUNDLE objectForInfoDictionaryKey:@"CFBundleVersion"];
+	NSString *userAgent = [NSString stringWithFormat:@"%@/%@ Sparkle/%@", [host name], [host displayVersion], version ? version : @"?"];
+	NSData *cleanedAgent = [userAgent dataUsingEncoding:NSASCIIStringEncoding allowLossyConversion:YES];
+	return [[[NSString alloc] initWithData:cleanedAgent encoding:NSASCIIStringEncoding] autorelease];
 }
 
 - (void)setSendsSystemProfile:(BOOL)sendsSystemProfile
@@ -323,14 +355,14 @@ static NSString *SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObserv
 		parameters = [parameters arrayByAddingObjectsFromArray:[host systemProfile]];
 		[host setObject:[NSDate date] forUserDefaultsKey:SULastProfileSubmitDateKey];
 	}
-	if (parameters == nil || [parameters count] == 0) { return baseFeedURL; }
+	if ([parameters count] == 0) { return baseFeedURL; }
 	
 	// Build up the parameterized URL.
 	NSMutableArray *parameterStrings = [NSMutableArray array];
 	NSEnumerator *profileInfoEnumerator = [parameters objectEnumerator];
 	NSDictionary *currentProfileInfo;
 	while ((currentProfileInfo = [profileInfoEnumerator nextObject]))
-		[parameterStrings addObject:[NSString stringWithFormat:@"%@=%@", [currentProfileInfo objectForKey:@"key"], [currentProfileInfo objectForKey:@"value"]]];
+		[parameterStrings addObject:[NSString stringWithFormat:@"%@=%@", [[[currentProfileInfo objectForKey:@"key"] description] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding], [[[currentProfileInfo objectForKey:@"value"] description] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
 	
 	NSString *separatorCharacter = @"?";
 	if ([baseFeedURL query])
@@ -338,7 +370,7 @@ static NSString *SUUpdaterDefaultsObservationContext = @"SUUpdaterDefaultsObserv
 	NSString *appcastStringWithProfile = [NSString stringWithFormat:@"%@%@%@", [baseFeedURL absoluteString], separatorCharacter, [parameterStrings componentsJoinedByString:@"&"]];
 	
 	// Clean it up so it's a valid URL
-	return [NSURL URLWithString:[appcastStringWithProfile stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]];
+	return [NSURL URLWithString:appcastStringWithProfile];
 }
 
 - (void)setUpdateCheckInterval:(NSTimeInterval)updateCheckInterval

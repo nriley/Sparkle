@@ -101,12 +101,38 @@
 	minimumSystemVersion = [systemVersionString copy];
 }
 
+- (NSDictionary *)deltaUpdates { return [[deltaUpdates retain] autorelease]; }
+- (void)setDeltaUpdates:(NSDictionary *)updates
+{
+	if (deltaUpdates == updates) return;
+	[deltaUpdates release];
+	deltaUpdates = [updates copy];
+}
+
+- (BOOL)isDeltaUpdate
+{
+	return [[propertiesDictionary objectForKey:@"enclosure"] objectForKey:@"sparkle:deltaFrom"] != nil;
+}
+
 - initWithDictionary:(NSDictionary *)dict
+{
+	return [self initWithDictionary:dict failureReason:nil];
+}
+
+- initWithDictionary:(NSDictionary *)dict failureReason:(NSString**)error
 {
 	self = [super init];
 	if (self)
 	{
 		id enclosure = [dict objectForKey:@"enclosure"];
+		
+		if (!enclosure)
+		{
+			if (error)
+				*error = @"No enclosure in feed item";
+			[self release];
+			return nil;
+		}
 		
 		// Try to find a version string.
 		// Finding the new version number from the RSS feed is a little bit hacky. There are two ways:
@@ -124,6 +150,22 @@
 			NSArray *fileComponents = [[enclosure objectForKey:@"url"] componentsSeparatedByString:@"-"];
 			if ([fileComponents count] > 1)
 				newVersion = [[fileComponents lastObject] stringByDeletingPathExtension];
+		}
+		
+		if (![enclosure objectForKey:@"url"] )
+		{
+			if (error)
+				*error = @"Feed item's enclosure lacks URL";
+			[self release];
+			return nil;
+		}
+		
+		if(!newVersion )
+		{
+			if (error)
+				*error = @"Feed item lacks sparkle:version attribute, and version couldn't be deduced from file name (would have used last component of a file name like AppName_1.3.4.zip)";
+			[self release];
+			return nil;
 		}
         
 		if (enclosure == nil || [enclosure objectForKey:@"url"] == nil || newVersion == nil)
@@ -157,6 +199,26 @@
                 [self setReleaseNotesURL:[NSURL URLWithString:[self itemDescription]]];
             else
                 [self setReleaseNotesURL:nil];
+
+            if ([dict objectForKey:@"deltas"])
+			{
+                NSMutableDictionary *deltas = [NSMutableDictionary dictionary];
+                NSArray *deltaDictionaries = [dict objectForKey:@"deltas"];
+                NSEnumerator *deltaDictionariesEnum = [deltaDictionaries objectEnumerator];
+                NSDictionary *deltaDictionary;
+                while ((deltaDictionary = [deltaDictionariesEnum nextObject]))
+				{
+                    NSMutableDictionary *fakeAppCastDict = [dict mutableCopy];
+                    [fakeAppCastDict removeObjectForKey:@"deltas"];
+                    [fakeAppCastDict setObject:deltaDictionary forKey:@"enclosure"];
+                    SUAppcastItem *deltaItem = [[[self class] alloc] initWithDictionary:fakeAppCastDict];
+                    [fakeAppCastDict release];
+
+                    [deltas setObject:deltaItem forKey:[deltaDictionary objectForKey:@"sparkle:deltaFrom"]];
+                    [deltaItem release];
+                }
+                [self setDeltaUpdates:deltas];
+            }
         }
 	}
 	return self;
@@ -164,14 +226,15 @@
 
 - (void)dealloc
 {
-    [self setTitle:nil];
-    [self setDate:nil];
-    [self setItemDescription:nil];
-    [self setReleaseNotesURL:nil];
-    [self setDSASignature:nil];
-    [self setFileURL:nil];
-    [self setVersionString:nil];
-	[self setDisplayVersionString:nil];
+	[title release];
+	[date release];
+	[itemDescription release];
+	[releaseNotesURL release];
+	[DSASignature release];
+	[minimumSystemVersion release];
+	[fileURL release];
+	[versionString release];
+	[displayVersionString release];
 	[propertiesDictionary release];
     [super dealloc];
 }
