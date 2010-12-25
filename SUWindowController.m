@@ -20,8 +20,12 @@
 		NSBundle *framework = [NSBundle bundleWithPath:frameworkPath];
 		path = [framework pathForResource:nibName ofType:@"nib"];
 	}
-	self = [super initWithWindowNibPath:path owner:self];	
-	return self;
+	self = [super initWithWindowNibPath:path owner:self];
+
+    ProcessSerialNumber currentProcess = {0, kCurrentProcess};
+    SetFrontProcessWithOptions(&currentProcess, kSetFrontProcessFrontWindowOnly);
+
+    return self;
 }
 
 @end
