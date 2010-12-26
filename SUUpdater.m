@@ -79,7 +79,7 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
 			NSRunAlertPanel(@"Insecure update error!", @"For security reasons, you need to distribute your appcast over SSL or sign your updates. See Sparkle's documentation for more information.", @"OK", nil, nil);
 		
         // This runs the permission prompt if needed, but never before the app has finished launching because the runloop won't run before that
-        [self performSelector:@selector(startUpdateCycle) withObject:nil afterDelay:0];
+        [self performSelector:@selector(startUpdateCycle) withObject:nil afterDelay:1];
 	}
 	return self;
 }
