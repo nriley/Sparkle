@@ -1226,6 +1226,7 @@
 			baseConfigurationReference = FA1941CA0D94A70100DD942E /* ConfigFrameworkDebug.xcconfig */;
 			buildSettings = {
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
@@ -1235,6 +1236,7 @@
 			buildSettings = {
 				GCC_DEBUGGING_SYMBOLS = full;
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
@@ -1288,6 +1290,7 @@
 			baseConfigurationReference = 61072EB20DF2640C008FE88B /* ConfigFrameworkReleaseGCSupport.xcconfig */;
 			buildSettings = {
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
+				SKIP_INSTALL = YES;
 			};
 			name = "Release (GC dual-mode; 10.5-only)";
 		};
@@ -1305,6 +1308,7 @@
 			buildSettings = {
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				LIBRARY_SEARCH_PATHS = "";
+				SKIP_INSTALL = YES;
 			};
 			name = "Release (GC dual-mode; 10.5-only)";
 		};
@@ -1354,6 +1358,7 @@
 			buildSettings = {
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				LIBRARY_SEARCH_PATHS = "";
+				SKIP_INSTALL = YES;
 			};
 			name = Debug;
 		};
@@ -1363,6 +1368,7 @@
 			buildSettings = {
 				GCC_VERSION = com.apple.compilers.llvm.clang.1_0;
 				LIBRARY_SEARCH_PATHS = "";
+				SKIP_INSTALL = YES;
 			};
 			name = Release;
 		};
