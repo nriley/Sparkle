@@ -8,3 +8,5 @@ WRAPPER_EXTENSION = framework
 FRAMEWORK_VERSION = A
 INFOPLIST_FILE = Info.plist
 GCC_PREFIX_HEADER = Sparkle.pch
+// NJR: don't install the framework
+SKIP_INSTALL = YES
