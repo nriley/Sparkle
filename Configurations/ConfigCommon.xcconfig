@@ -1,17 +1,8 @@
 // Common
 
 CURRENT_PROJECT_VERSION = 1.5
-<<<<<<< HEAD
-SDKROOT = $(DEVELOPER_SDK_DIR)/MacOSX10.6.sdk
 MACOSX_DEPLOYMENT_TARGET[arch=i386] = 10.6
 MACOSX_DEPLOYMENT_TARGET[arch=x86_64] = 10.6
-=======
-SDKROOT = macosx10.7
-MACOSX_DEPLOYMENT_TARGET[arch=ppc] = 10.4
-MACOSX_DEPLOYMENT_TARGET[arch=ppc64] = 10.5
-MACOSX_DEPLOYMENT_TARGET[arch=i386] = 10.4
-MACOSX_DEPLOYMENT_TARGET[arch=x86_64] = 10.5
->>>>>>> 26077f47af4743533f961d4357567306f2fe5c3f
 GCC_C_LANGUAGE_STANDARD = c99
 GCC_ENABLE_OBJC_EXCEPTIONS = YES
 GCC_DEBUGGING_SYMBOLS = full
@@ -50,8 +41,4 @@ GCC_WARN_UNUSED_VALUE = YES
 GCC_WARN_UNUSED_PARAMETER = YES
 GCC_WARN_ABOUT_MISSING_FIELD_INITIALIZERS = YES
 GCC_WARN_UNDECLARED_SELECTOR = YES
-<<<<<<< HEAD
-WARNING_CFLAGS = -Wall -Wno-unused-parameter -Werror -Wundef -Wendif-labels -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-format-attribute -Wpacked -Wredundant-decls -Winline -Wdisabled-optimization -Wformat=2 -Winvalid-pch -Wno-format-nonliteral
-=======
 WARNING_CFLAGS = -Wall -Wno-unused-parameter -Werror -Wundef -Wendif-labels -Wpointer-arith -Wcast-align -Wwrite-strings -Wmissing-format-attribute -Wpacked -Wredundant-decls -Winline -Wdisabled-optimization -Winvalid-pch
->>>>>>> 26077f47af4743533f961d4357567306f2fe5c3f
