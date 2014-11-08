@@ -10,6 +10,28 @@
 #define SUAPPCASTITEM_H
 
 @interface SUAppcastItem : NSObject
+{
+@private
+    NSString *title;
+    NSDate *date;
+    NSString *itemDescription;
+
+    NSURL *releaseNotesURL;
+
+    NSString *DSASignature;
+    NSString *minimumSystemVersion;
+    NSString *maximumSystemVersion;
+
+    NSURL *fileURL;
+    NSString *versionString;
+    NSString *displayVersionString;
+
+    NSDictionary *deltaUpdates;
+
+    NSDictionary *propertiesDictionary;
+
+    NSURL *infoURL;
+}
 @property (copy, readonly) NSString *title;
 @property (copy, readonly) NSDate *date;
 @property (copy, readonly) NSString *itemDescription;

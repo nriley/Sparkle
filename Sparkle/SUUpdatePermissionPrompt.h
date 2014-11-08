@@ -27,6 +27,7 @@ typedef enum {
 	IBOutlet NSView *moreInfoView;
 	IBOutlet NSButton *moreInfoButton;
     IBOutlet NSTableView *profileTableView;
+    BOOL _isShowingMoreInfo, _shouldSendProfile;
 }
 + (void)promptWithHost:(SUHost *)aHost systemProfile:(NSArray *)profile delegate:(id<SUUpdatePermissionPromptDelegate>)d;
 - (IBAction)toggleMoreInfo:(id)sender;

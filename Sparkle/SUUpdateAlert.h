@@ -26,6 +26,8 @@ typedef enum
 @interface SUUpdateAlert : SUWindowController {
 	SUAppcastItem *updateItem;
 	SUHost *host;
+    id<SUUpdateAlertDelegate> delegate;
+    id<SUVersionDisplay> versionDisplayer;
 
 	IBOutlet WebView *releaseNotesView;
 	IBOutlet NSTextField *description;

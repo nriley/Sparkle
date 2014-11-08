@@ -25,9 +25,12 @@
 @interface SUUpdater : NSObject
 {
 @private
+    NSTimer *checkTimer;
 	SUUpdateDriver *driver;
 
+    NSString *customUserAgentString;
 	SUHost *host;
+    IBOutlet id delegate;
 }
 @property (assign) IBOutlet id<SUUpdaterDelegate> delegate;
 

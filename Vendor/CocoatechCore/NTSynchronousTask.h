@@ -10,6 +10,16 @@
 #define NTSYNCHRONOUSTASK_H
 
 @interface NTSynchronousTask : NSObject
+{
+@private
+    NSTask *mv_task;
+    NSPipe *mv_outputPipe;
+    NSPipe *mv_inputPipe;
+
+    NSData* mv_output;
+    BOOL mv_done;
+    int mv_result;
+}
 @property (readonly, retain) NSData *output;
 @property (readonly) int result;
 

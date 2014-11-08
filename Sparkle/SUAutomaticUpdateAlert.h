@@ -22,6 +22,11 @@ typedef enum
 
 @class SUAppcastItem, SUHost;
 @interface SUAutomaticUpdateAlert : SUWindowController
+{
+    SUAppcastItem *updateItem;
+    id<SUAutomaticUpdateAlertDelegate> delegate;
+    SUHost *host;
+}
 
 - (instancetype)initWithAppcastItem:(SUAppcastItem *)item host:(SUHost *)hostBundle delegate:(id<SUAutomaticUpdateAlertDelegate>)delegate;
 - (IBAction)installNow:sender;
