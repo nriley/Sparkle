@@ -205,7 +205,7 @@ int main(int argc, char **argv)
             if ([info isEqual:oldInfo])
                 [newTreeState removeObjectForKey:key];
             else
-                newTreeState[key] = info;
+                [newTreeState setObject:info forKey:key];
         }
         fts_close(fts);
 

@@ -128,7 +128,7 @@
 		} while (item && ![self hostSupportsItem:item]);
 
 		if (binaryDeltaSupported()) {
-			SUAppcastItem *deltaUpdateItem = [item deltaUpdates][[host version]];
+			SUAppcastItem *deltaUpdateItem = [[item deltaUpdates] objectForKey:[host version]];
 			if (deltaUpdateItem && [self hostSupportsItem:deltaUpdateItem]) {
 				nonDeltaUpdateItem = [item retain];
 				item = deltaUpdateItem;
