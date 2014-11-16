@@ -62,7 +62,7 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
 + (SUUpdater *)updaterForBundle:(NSBundle *)bundle
 {
     if (bundle == nil) bundle = [NSBundle mainBundle];
-	id updater = [sharedUpdaters objectForKey:[NSValue valueWithNonretainedObject:bundle]];
+	id updater = sharedUpdaters[[NSValue valueWithNonretainedObject:bundle]];
 	if (updater == nil) {
 		updater = [[[[self class] alloc] initForBundle:bundle] autorelease];
 	}
@@ -80,7 +80,7 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
 		[self registerAsObserver];
 	}
 
-	id updater = [sharedUpdaters objectForKey:[NSValue valueWithNonretainedObject:bundle]];
+	id updater = sharedUpdaters[[NSValue valueWithNonretainedObject:bundle]];
     if (updater)
 	{
 		[self release];
@@ -91,7 +91,7 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
 		if (sharedUpdaters == nil) {
             sharedUpdaters = [[NSMutableDictionary alloc] init];
 		}
-        [sharedUpdaters setObject:self forKey:[NSValue valueWithNonretainedObject:bundle]];
+        sharedUpdaters[[NSValue valueWithNonretainedObject:bundle]] = self;
         host = [[SUHost alloc] initWithBundle:bundle];
 
 		// Saving-the-developer-from-a-stupid-mistake-check:
@@ -237,7 +237,7 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
 
 -(void)	putFeedURLIntoDictionary: (NSMutableDictionary*)theDict	// You release this.
 {
-    [theDict setObject:[self feedURL] forKey:@"feedURL"];
+	theDict[@"feedURL"] = [self feedURL];
 }
 
 -(void)	checkForUpdatesInBgReachabilityCheckWithDriver: (SUUpdateDriver*)inDriver /* RUNS ON ITS OWN THREAD */
@@ -259,7 +259,7 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
 				[self putFeedURLIntoDictionary:theDict];	// Get feed URL on main thread, it's not safe to call elsewhere.
 			});
 
-            const char *hostname = [[(NSURL *)[theDict objectForKey: @"feedURL"] host] cStringUsingEncoding: NSUTF8StringEncoding];
+			const char *hostname = [[(NSURL *)theDict[@"feedURL"] host] cStringUsingEncoding: NSUTF8StringEncoding];
 			SCNetworkReachabilityRef reachability = SCNetworkReachabilityCreateWithName(NULL, hostname);
 			Boolean reachabilityResult = NO;
 			// If the feed's using a file:// URL, we won't be able to use reachability.
@@ -517,7 +517,7 @@ static NSString * const SUUpdaterDefaultsObservationContext = @"SUUpdaterDefault
 	// Build up the parameterized URL.
 	NSMutableArray *parameterStrings = [NSMutableArray array];
 	for (NSDictionary *currentProfileInfo in parameters) {
-		[parameterStrings addObject:[NSString stringWithFormat:@"%@=%@", [[[currentProfileInfo objectForKey:@"key"] description] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding], [[[currentProfileInfo objectForKey:@"value"] description] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
+		[parameterStrings addObject:[NSString stringWithFormat:@"%@=%@", [[currentProfileInfo[@"key"] description] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding], [[currentProfileInfo[@"value"] description] stringByAddingPercentEscapesUsingEncoding:NSUTF8StringEncoding]]];
 	}
 
 	NSString *separatorCharacter = @"?";

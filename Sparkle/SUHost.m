@@ -75,7 +75,7 @@ typedef struct {
         appSupportPath = [@"~/Library/Application Support" stringByExpandingTildeInPath];
     }
 	else {
-        appSupportPath = [appSupportPaths objectAtIndex:0];
+        appSupportPath = appSupportPaths[0];
 	}
     appSupportPath = [appSupportPath stringByAppendingPathComponent:[self name]];
     appSupportPath = [appSupportPath stringByAppendingPathComponent:@".Sparkle"];
@@ -265,7 +265,7 @@ typedef struct {
 #pragma clang diagnostic pop
     {
         NSURL *coreServices = [[NSFileManager defaultManager] URLForDirectory:NSCoreServiceDirectory inDomain:NSSystemDomainMask appropriateForURL:nil create:NO error:nil];
-        return [[NSDictionary dictionaryWithContentsOfURL:[coreServices URLByAppendingPathComponent:@"SystemVersion.plist"]] objectForKey:@"ProductVersion"];
+        return [NSDictionary dictionaryWithContentsOfURL:[coreServices URLByAppendingPathComponent:@"SystemVersion.plist"]][@"ProductVersion"];
     }
 #endif
     NSOperatingSystemVersion version = [[NSProcessInfo processInfo] operatingSystemVersion];

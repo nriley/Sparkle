@@ -29,7 +29,7 @@
 	{
 		if ([currentType length] > [lastPathComponent length]) continue;
 		if ([[lastPathComponent substringFromIndex:[lastPathComponent length] - [currentType length]] isEqualToString:currentType])
-			return NSSelectorFromString([typeSelectorDictionary objectForKey:currentType]);
+			return NSSelectorFromString(typeSelectorDictionary[currentType]);
 	}
 	return NULL;
 }
@@ -55,7 +55,7 @@
 		SULog(@"Extracting %@ using '%@'",archivePath,command);
 
 		// Get the file size.
-		NSNumber *fs = [[[NSFileManager defaultManager] attributesOfItemAtPath:archivePath error:nil] objectForKey:NSFileSize];
+		NSNumber *fs = [[NSFileManager defaultManager] attributesOfItemAtPath:archivePath error:nil][NSFileSize];
 		if (fs == nil) goto reportError;
 
 		// Thank you, Allan Odgaard!

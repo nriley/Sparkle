@@ -99,7 +99,7 @@
 			error = sysctlbyname("hw.model", cpuModel, &length, NULL, 0);
 			if (error == 0) {
 				NSString *rawModelName = @(cpuModel);
-				NSString *visibleModelName = [modelTranslation objectForKey:rawModelName];
+				NSString *visibleModelName = modelTranslation[rawModelName];
 				if (visibleModelName == nil) {
 					visibleModelName = rawModelName;
 				}
@@ -119,7 +119,7 @@
 	NSUserDefaults *defs = [NSUserDefaults standardUserDefaults];
 	NSArray *languages = [defs objectForKey:@"AppleLanguages"];
 	if ([languages count] > 0) {
-        [profileArray addObject:[NSDictionary dictionaryWithObjects:@[@"lang",@"Preferred Language", [languages objectAtIndex:0], [languages objectAtIndex:0]] forKeys:profileDictKeys]];
+		[profileArray addObject:[NSDictionary dictionaryWithObjects:@[@"lang",@"Preferred Language", languages[0], languages[0]] forKeys:profileDictKeys]];
 	}
 
 	// Application sending the request

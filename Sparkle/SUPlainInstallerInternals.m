@@ -573,7 +573,7 @@ static BOOL AuthorizationExecuteWithPrivilegesAndWait(AuthorizationRef authoriza
 	// Only recurse if it's actually a directory.  Don't recurse into a
 	// root-level symbolic link.
 	NSDictionary* rootAttributes = [[NSFileManager defaultManager] attributesOfItemAtPath:root error:nil];
-	NSString* rootType = [rootAttributes objectForKey:NSFileType];
+	NSString* rootType = rootAttributes[NSFileType];
 
 	if (rootType == NSFileTypeDirectory) {
 		// The NSDirectoryEnumerator will avoid recursing into any contained
